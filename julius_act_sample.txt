@@ -1,0 +1,2 @@
+julius -C /home/pi/grammar-kit-v4.1/hmm_mono.jconf -input mic -gram /home/pi/original_2/command -module
+python /home/pi/koike_ws/order_actuation.py

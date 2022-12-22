@@ -9,8 +9,9 @@ port = 10500
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((host, port))
 
-valve_01 = 17
-valve_02 = 27
+# Valve : A
+valve_01 = 13
+valve_02 = 6
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(valve_01, GPIO.OUT)
@@ -44,7 +45,7 @@ try:
             for whypo in root.findall('./SHYPO/WHYPO'):
                 command = whypo.get('WORD')
                 score = float(whypo.get('CM'))
-                #print(command + ':' + str(score))
+                print(command + ':' + str(score))
                 if (key_Rise[0] in command) and score >= word_th:
                     print('rise')
                     valve_gain(valve_01, valve_02)
