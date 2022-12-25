@@ -22,8 +22,11 @@ GPIO26 (37) (38) GPIO20
    GND (39) (40) GPIO21
 """
 
-VALVE_GPIO_LIST_L = [None]*6
-VALVE_GPIO_LIST_R = [6, 13, 16, 5, 21, 20]
+SR   = "/"
+HOME = "/home/pi"
+
+VALVE_GPIO_LIST_R = [ 6, 13, 16,  5, 21, 20]
+VALVE_GPIO_LIST_L = [27, 17,  4, 22, 24, 23]
 
 class Valve:
     class Right:
@@ -56,3 +59,37 @@ class Valve:
 
 class Power:
     CPS = 12
+
+class Julius:
+    class Con:
+        host = '127.0.0.1'
+        port = 10500
+
+    class Path:
+        dictation = "dictation-kit"
+        grammar   = "grammar-kit-v4.1"
+        original_dict = "original_2"
+
+    class Param:
+        word_threshold = 0.95
+
+    class OrderSet:
+        # System
+        CPS   = ['コンプレッサー']
+        Power = ["電源"]
+        On    = ["オン"]
+        Off   = ["オフ"]
+        # Body
+        UpperArm = ['腕', '上腕']
+        LowerArm = ['肘']
+        Rise     = ['挙げ']
+        Fall     = ['下げ']
+        Stop     = ['停止']
+        
+        # 緊急時
+        Stop = ["やめて", "痛い", "全停止"]
+
+    
+
+class Arduino:
+    pass

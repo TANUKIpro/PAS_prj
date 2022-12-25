@@ -3,30 +3,13 @@ import socket
 import xml.etree.ElementTree as ET
 import RPi.GPIO as GPIO
 
+
 host = '127.0.0.1'
 port = 10500
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((host, port))
 
-pin_l1 = 40
-pin_l2 = 38
-pin_l3 = 36
-pin_l4 = 29
-pin_l5 = 31
-pin_l6 = 33
-
-pin_r1 = 16
-pin_r2 = 18
-pin_r3 = 15
-pin_r4 = 7
-pin_r5 = 11
-pin_r6 = 13
-
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(valve_01, GPIO.OUT)
-GPIO.setup(valve_02, GPIO.OUT)
 
 key_UpperArm = ['腕', '上腕']
 key_LowerArm = ['肘']
@@ -48,7 +31,10 @@ def valve_reduction(v_in, v_out):
 
 word_th = 0.95
 
+
 try:
+    #電磁弁の初期化
+    
     data = ''
     while True:
         if '</RECOGOUT>\n.' in data:
