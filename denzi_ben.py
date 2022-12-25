@@ -1,47 +1,54 @@
-import time
+import sys, time
 import RPi.GPIO as GPIO
+import const
+from const import Valve, Power
 
-cpr_PW = 18
-cprL_A_u = 13
-cprL_A_l = 6
-cprL_B_u = 5
-cprL_B_l = 16
-cprL_C_u = 20
-cprL_C_l = 21
+def gpio_init():
+    GPIO.setmode(GPIO.BCM)
 
-GPIO.setmode(GPIO.BCM)
+    # 任意のGPIOを出力モードへ
+    GPIO.setup(Power.CPS, GPIO.OUT)
+    #for __valve_gpio_r in const.VALVE_GPIO_LIST_R:
+    #    GPIO.setup(__valve_gpio_r, GPIO.OUT)
 
-GPIO.setup(cpr_PW, GPIO.OUT)
-GPIO.setup(cprL_A_u, GPIO.OUT)
-GPIO.setup(cprL_A_l, GPIO.OUT)
-
-def valve_stop(v_in, v_out):
-    GPIO.output(v_in, 1)
-    GPIO.output(v_out, 0)
-
-def valve_gain(v_in, v_out):
-    GPIO.output(v_in, 0)
-    GPIO.output(v_out, 0)
-
-def valve_reduction(v_in, v_out):
-    GPIO.output(v_in, 1)
-    GPIO.output(v_out, 1)
+    for __valve_gpio_l in const.VALVE_GPIO_LIST_L:
+        GPIO.setup(__valve_gpio_l, GPIO.OUT)
 
 
-try:
-    while True:
-        print('stop')
-        valve_stop(cprL_A_u, cprL_A_l)
-        time.sleep(2)
-        
-        print('gain')
-        valve_gain(cprL_A_u, cprL_A_l)
-        time.sleep(2)
-        
-        print('reduction')
-        valve_reduction(cprL_A_u, cprL_A_l)
-        time.sleep(2)
-        
-except KeyboardInterrupt:
-    GPIO.cleanup()
+def valve_pressurization(target):
+    GPIO.output(target.u, GPIO.LOW)
+    GPIO.output(target.l, GPIO.LOW)
+
+def valve_decompression(target):
+    GPIO.output(target.u, GPIO.HIGH)
+    GPIO.output(target.l, GPIO.HIGH)
+
+def valve_keep(target):
+    GPIO.output(target.u, GPIO.HIGH)
+    GPIO.output(target.l, GPIO.LOW)
+
+if __name__=='__main__':
+    try:
+        gpio_init()
+
+        valve_decompression(Valve.Right.B)
+        valve_decompression(Valve.Right.C)
+
+        tgt = Valve.Right.A
+
+        while True:
+            print('stop')
+            valve_keep(tgt)
+            time.sleep(2)
+            
+            print('gain')
+            valve_pressurization(tgt)
+            time.sleep(2)
+            
+            print('reduction')
+            valve_decompression(tgt)
+            time.sleep(2)
+            
+    except KeyboardInterrupt:
+        GPIO.cleanup()
 
