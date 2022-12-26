@@ -1,5 +1,4 @@
 """
-J8:
    3V3  (1) (2)  5V
  GPIO2  (3) (4)  5V
  GPIO3  (5) (6)  GND
@@ -76,7 +75,6 @@ class Julius:
     class OrderSet:
         # System
         CPS   = ['コンプレッサー']
-        Power = ["電源"]
         On    = ["オン"]
         Off   = ["オフ"]
         # Body
@@ -87,7 +85,7 @@ class Julius:
         Stop     = ['停止']
         
         # 緊急時
-        Stop = ["やめて", "痛い", "全停止"]
+        Ema_Stop = ["やめて", "痛い", "全停止"]
 
     
 
