@@ -58,11 +58,13 @@ def julius_init():
         pass
 
 def julius_start():
-    spell = f"julius -C {const.HOME+Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME+const.WS+Julius.Path.original_dict}/command -module"
-    spell_CompPrsObj = subprocess.run(spell, shell=True)
+    spell = f"exec julius -C {const.HOME+Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME+const.WS+Julius.Path.original_dict}/command -module"
+    spell_CompPrsObj = subprocess.Popen(spell, shell=True, stdout=subprocess.DEVNULL)
     if spell_CompPrsObj.returncode:
         print("failed start JULIUS")
         sys.exit()
+    else:
+        return spell_CompPrsObj
 
 def word_inspection(recog_word, target, score, th=Julius.Param.word_threshold) -> bool:
     is_understand = bool(list(set(target) & set(recog_word)))
@@ -77,11 +79,19 @@ def main():
     julius_init()
 
     # Juliusの起動
-    julius_start()
+    cmd_obj = julius_start()
 
     # Juliusの接続
-    julius_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    julius_client.connect((Julius.Con.host, Julius.Con.port))
+    time.sleep(2)
+    try:
+        print("try connect to Julius")
+        julius_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        julius_client.connect((Julius.Con.host, Julius.Con.port))
+    except:
+        print("connection error.")
+
+    print("*"*20)
+    print("RECOG WORDS")
 
     # 音声認識と対応する動作の実行
     try:
@@ -92,6 +102,7 @@ def main():
                 for whypo in root.findall('./SHYPO/WHYPO'):
                     command = whypo.get('WORD')
                     score = float(whypo.get('CM'))
+                    print(command, " : ", score)
                     # 緊急停止
                     if word_inspection(command, Julius.OrderSet.Ema_Stop, score, th=0.5):
                         for __valve_gpio_l in const.VALVE_GPIO_LIST_L:
@@ -139,6 +150,7 @@ def main():
                 julius_xml_data = julius_xml_data + julius_client.recv(1024).decode('utf-8')
 
     except KeyboardInterrupt:
+        julius_client.send("DIE".encode("utf-8"))
         julius_client.close()
         GPIO.cleanup()
 
