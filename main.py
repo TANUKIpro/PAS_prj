@@ -58,7 +58,7 @@ def julius_init():
         pass
 
 def julius_start():
-    spell = f"julius -C {const.HOME + const.SR + Julius.Path.dictation}/hmm_mono.jconf -input mic -gram {const.HOME + const.SR + Julius.Path.original_dict}/command -module"
+    spell = f"julius -C {const.HOME + const.SR + Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME + const.SR + Julius.Path.original_dict}/command -module"
     spell_CompPrsObj = subprocess.run(spell, shell=True)
     if spell_CompPrsObj.returncode:
         print("failed start JULIUS")
@@ -95,9 +95,9 @@ def main():
                     # 緊急停止
                     if word_inspection(command, Julius.OrderSet.Ema_Stop, score, th=0.5):
                         for __valve_gpio_l in const.VALVE_GPIO_LIST_L:
-                            GPIO.output(target.u, GPIO.HIGH)
+                            GPIO.output(__valve_gpio_l, GPIO.HIGH)
                         for __valve_gpio_r in const.VALVE_GPIO_LIST_R:
-                            GPIO.output(target.u, GPIO.HIGH)
+                            GPIO.output(__valve_gpio_r, GPIO.HIGH)
                     
                     # TODO:ここに左右判定
                     # 腕、上腕 (TYPE : A)
