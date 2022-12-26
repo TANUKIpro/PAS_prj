@@ -45,20 +45,20 @@ def julius_init():
     if subprocess.run("which julius", shell=True).returncode:
         print("julius is not find.")
         sys.exit()
-    elif not os.path.exists(const.HOME + const.SR + Julius.Path.dictation):
+    elif not os.path.exists(const.HOME + Julius.Path.dictation):
         print(f"{Julius.Path.dictation} is not find.")
         sys.exit()
-    elif not os.path.exists(const.HOME + const.SR + Julius.Path.grammar):
+    elif not os.path.exists(const.HOME + Julius.Path.grammar):
         print(f"{Julius.Path.grammar} is not find.")
         sys.exit()
-    elif not os.path.exists(const.HOME + const.SR + Julius.Path.original_dict):
+    elif not os.path.exists(const.HOME + const.WS + Julius.Path.original_dict):
         print(f"{Julius.Path.original_dict} is not find.")
         sys.exit()
     else:
         pass
 
 def julius_start():
-    spell = f"julius -C {const.HOME + const.SR + Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME + const.SR + Julius.Path.original_dict}/command -module"
+    spell = f"julius -C {const.HOME+Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME+const.WS+Julius.Path.original_dict}/command -module"
     spell_CompPrsObj = subprocess.run(spell, shell=True)
     if spell_CompPrsObj.returncode:
         print("failed start JULIUS")
