@@ -67,7 +67,7 @@ class Julius:
     class Path:
         dictation = "/dictation-kit"
         grammar   = "/grammar-kit-v4.1"
-        original_dict = "/original_2"
+        original_dict = "/original_3"
 
     class Param:
         word_threshold = 0.95
@@ -83,9 +83,10 @@ class Julius:
         Rise     = ['挙げ']
         Fall     = ['下げ']
         Stop     = ['停止']
+        Start    = ['開始']
         
         # 緊急時
-        Ema_Stop = ["やめて", "痛い", "全停止", "緊急停止"]
+        Ema_Stop = ["全停止", "緊急停止"]
 
     
 
