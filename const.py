@@ -67,7 +67,11 @@ class Julius:
     class Path:
         dictation = "/dictation-kit"
         grammar   = "/grammar-kit-v4.1"
-        original_dict = "/original_3"
+        #original_dict = "/original_3"
+        original_dict = [
+            "/cmd/emergency/cmd_eme", 
+            "/cmd/body/cmd_body",
+            "/cmd/dev/cmd_dev"]
 
     class Param:
         word_threshold = 0.95
@@ -87,8 +91,6 @@ class Julius:
         
         # 緊急時
         Ema_Stop = ["全停止", "緊急停止"]
-
-    
 
 class Arduino:
     pass

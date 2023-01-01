@@ -102,7 +102,6 @@ def main():
                     command = whypo.get('WORD')
                     score = float(whypo.get('CM'))
                     print(command, " : ", score)
-                    continue
                     # 緊急停止
                     if word_inspection(command, Julius.OrderSet.Ema_Stop, score, th=0.5):
                         for __valve_gpio_l in const.VALVE_GPIO_LIST_L:
@@ -139,11 +138,11 @@ def main():
                             valve_keep(Valve.Left.C)
 
                     # コンプレッサー
-                    elif word_inspection(command, Julius.OrderSet.CPS, score):
-                        if word_inspection(command, Julius.OrderSet.On, score):
-                            GPIO.output(Power.CPS, GPIO.HIGH)
-                        elif word_inspection(command, Julius.OrderSet.Off, score):
-                            GPIO.output(Power.CPS, GPIO.LOW)
+                    #elif word_inspection(command, Julius.OrderSet.CPS, score):
+                    #    if word_inspection(command, Julius.OrderSet.On, score):
+                    #        GPIO.output(Power.CPS, GPIO.HIGH)
+                    #    elif word_inspection(command, Julius.OrderSet.Off, score):
+                    #        GPIO.output(Power.CPS, GPIO.LOW)
 
                 julius_xml_data = ''
             else:
