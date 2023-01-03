@@ -1,0 +1,5 @@
+S	:	NS_B DEV_N DEV_IO NS_E
+# デバイス名
+DEV_N	:	DEV
+# On / Off
+DEV_IO	:	IO

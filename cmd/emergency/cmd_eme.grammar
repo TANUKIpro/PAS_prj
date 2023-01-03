@@ -1,0 +1,5 @@
+S	:	NS_B EME_W EME_S NS_E
+# 緊急/全(Emergency Word : EME_W)
+EME_W	:	EME
+# 停止(Emergency State : EME_S)
+EME_S	:	STATE
