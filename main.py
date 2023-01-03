@@ -45,21 +45,22 @@ def julius_init():
     if subprocess.run("which julius", shell=True).returncode:
         print("julius is not find.")
         sys.exit()
-    elif not os.path.exists(const.HOME + Julius.Path.dictation):
+    elif not os.path.exists(Julius.Path.dictation):
         print(f"{Julius.Path.dictation} is not find.")
         sys.exit()
-    elif not os.path.exists(const.HOME + Julius.Path.grammar):
+    elif not os.path.exists(Julius.Path.grammar):
         print(f"{Julius.Path.grammar} is not find.")
         sys.exit()
-    elif not os.path.exists(const.HOME + const.WS + Julius.Path.original_dict):
-        print(f"{Julius.Path.original_dict} is not find.")
-        sys.exit()
+    #elif not os.path.exists(Julius.Path.original_dict):
+    #    print(f"{Julius.Path.original_dict} is not find.")
+    #    sys.exit()
     else:
         pass
 
 def julius_start():
-    #spell = f"exec julius -C {const.HOME+Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME+const.WS+Julius.Path.original_dict}/command -module"
-    spell = "julius -C ~/dictation-kit/am-gmm.jconf -input mic -gram ~/PAS_prj/original_3/command -nostrip -module"
+    #spell = "julius -C ~/dictation-kit/am-gmm.jconf -input mic -gram ~/PAS_prj/original_3/command -nostrip -module"
+    #spell = f"exec julius -C {Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME+const.WS+Julius.Path.original_dict}/command -module"
+    spell = f"julius -C {Julius.Path.grammar} -input mic -gram {const.Julius.Path.orgn_dict[0]},{const.Julius.Path.orgn_dict[1]},{const.Julius.Path.orgn_dict[2]}"
     spell_CompPrsObj = subprocess.Popen(spell, shell=True, stdout=subprocess.DEVNULL)
     if spell_CompPrsObj.returncode:
         print("failed start JULIUS")
@@ -103,7 +104,7 @@ def main():
                     score = float(whypo.get('CM'))
                     print(command, " : ", score)
                     # 緊急停止
-                    if word_inspection(command, Julius.OrderSet.Ema_Stop, score, th=0.5):
+                    if word_inspection(command, Julius.OrderSet.Eme_Stop, score, th=0.5):
                         for __valve_gpio_l in const.VALVE_GPIO_LIST_L:
                             GPIO.output(__valve_gpio_l, GPIO.HIGH)
                         for __valve_gpio_r in const.VALVE_GPIO_LIST_R:
@@ -138,11 +139,11 @@ def main():
                             valve_keep(Valve.Left.C)
 
                     # コンプレッサー
-                    #elif word_inspection(command, Julius.OrderSet.CPS, score):
-                    #    if word_inspection(command, Julius.OrderSet.On, score):
-                    #        GPIO.output(Power.CPS, GPIO.HIGH)
-                    #    elif word_inspection(command, Julius.OrderSet.Off, score):
-                    #        GPIO.output(Power.CPS, GPIO.LOW)
+                    elif word_inspection(command, Julius.OrderSet.CPS, score):
+                        if word_inspection(command, Julius.OrderSet.On, score):
+                            GPIO.output(Power.CPS, GPIO.HIGH)
+                        elif word_inspection(command, Julius.OrderSet.Off, score):
+                            GPIO.output(Power.CPS, GPIO.LOW)
 
                 julius_xml_data = ''
             else:
