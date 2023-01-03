@@ -5,3 +5,8 @@ python /home/pi/koike_ws/order_actuation.py
 
 # マイクゲイン調性
 amixer sset Mic 5 -c 0
+
+# yomi -> phone
+iconv XXXX.yomi | yomi2voca.pl > XXXX.phone
+
+julius -C grammar-kit-v4.1/hmm_mono.jconf -input mic -gram PAS_prj/cmd/emergency/cmd_eme,PAS_prj/cmd/body/cmd_body,PAS_prj/cmd/dev/cmd_dev
