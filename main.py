@@ -27,14 +27,17 @@ def gpio_init():
     for __valve_gpio_r in const.VALVE_GPIO_LIST_R:
         GPIO.setup(__valve_gpio_r, GPIO.OUT)
 
+# 加圧
 def valve_pressurization(target):
     GPIO.output(target.u, GPIO.LOW)
     GPIO.output(target.l, GPIO.LOW)
 
+# 減圧
 def valve_decompression(target):
     GPIO.output(target.u, GPIO.HIGH)
     GPIO.output(target.l, GPIO.HIGH)
 
+# 維持
 def valve_keep(target):
     GPIO.output(target.u, GPIO.HIGH)
     GPIO.output(target.l, GPIO.LOW)
@@ -51,16 +54,16 @@ def julius_init():
     elif not os.path.exists(Julius.Path.grammar):
         print(f"{Julius.Path.grammar} is not find.")
         sys.exit()
-    #elif not os.path.exists(Julius.Path.original_dict):
-    #    print(f"{Julius.Path.original_dict} is not find.")
-    #    sys.exit()
+    elif not all([cmd for cmd in const.Julius.Path.orgn_dict if os.path.exists(cmd)]):
+        print(f"{Julius.Path.orgn_dict} is not find.")
+        sys.exit()
     else:
         pass
 
 def julius_start():
     #spell = "julius -C ~/dictation-kit/am-gmm.jconf -input mic -gram ~/PAS_prj/original_3/command -nostrip -module"
     #spell = f"exec julius -C {Julius.Path.grammar}/hmm_mono.jconf -input mic -gram {const.HOME+const.WS+Julius.Path.original_dict}/command -module"
-    spell = f"julius -C {Julius.Path.grammar} -input mic -gram {const.Julius.Path.orgn_dict[0]},{const.Julius.Path.orgn_dict[1]},{const.Julius.Path.orgn_dict[2]}"
+    spell = f"julius -C {Julius.Path.grammar} -input mic -gram {const.Julius.Path.orgn_dict[0]},{const.Julius.Path.orgn_dict[1]},{const.Julius.Path.orgn_dict[2]} -module"
     spell_CompPrsObj = subprocess.Popen(spell, shell=True, stdout=subprocess.DEVNULL)
     if spell_CompPrsObj.returncode:
         print("failed start JULIUS")
@@ -68,10 +71,22 @@ def julius_start():
     else:
         return spell_CompPrsObj
 
-def word_inspection(recog_word, target, score, th=Julius.Param.word_threshold) -> bool:
-    is_understand = bool(list(set(target) & set(recog_word)))
-    is_satisfy = score >= th
-    return is_understand and is_satisfy
+def word_inspection(target, recog_word_list, score_list, th=Julius.Param.word_threshold) -> bool:
+    matched_word = list(set(target) & set(recog_word_list))
+    is_understand = bool(matched_word)
+    if is_understand:
+        score_idx = recog_word_list.index(matched_word[0])
+        is_satisfy = score_list[score_idx] >= th
+        return is_understand and is_satisfy
+    else:
+        return False
+
+def get_root(data):
+    try:
+        root = ET.fromstring('<?xml version="1.0"?>\n' + data[data.find('<RECOGOUT>'):].replace('\n.', ''))
+    except:
+        root = None
+    return root
 
 def main():
     # 電磁弁の初期化
@@ -97,58 +112,79 @@ def main():
         julius_xml_data = ''
         while True:
             if '</RECOGOUT>\n.' in julius_xml_data:
-                print("wait command >> ")
-                root = ET.fromstring('<?xml version="1.0"?>\n' + julius_xml_data[julius_xml_data.find('<RECOGOUT>'):].replace('\n.', ''))
-                for whypo in root.findall('./SHYPO/WHYPO'):
-                    command = whypo.get('WORD')
-                    score = float(whypo.get('CM'))
-                    print(command, " : ", score)
+                root = get_root(julius_xml_data)
+                if root is None:
+                    julius_xml_data = ''
+                    continue
+                else:
+                    hex_raw = root.findall('./SHYPO/WHYPO')
+                    recog_words  = [raw.get('WORD') for raw in hex_raw][1:-1] # <-- pop header and footer
+                    recog_scores = [float(raw.get('CM')) for raw in hex_raw][1:-1] # <-- pop header and footer
+
+                    print(recog_words, recog_scores)
                     # 緊急停止
-                    if word_inspection(command, Julius.OrderSet.Eme_Stop, score, th=0.5):
+                    if word_inspection(Julius.OrderSet.Eme_Stop, recog_words, recog_scores, th=0.5):
+                        print("緊急停止")
                         for __valve_gpio_l in const.VALVE_GPIO_LIST_L:
                             GPIO.output(__valve_gpio_l, GPIO.HIGH)
                         for __valve_gpio_r in const.VALVE_GPIO_LIST_R:
                             GPIO.output(__valve_gpio_r, GPIO.HIGH)
+
+                    # コンプレッサー
+                    elif word_inspection(Julius.OrderSet.CPS, recog_words, recog_scores):
+                        print("コンプレッサー")
+                        recog_words.pop(0)
+                        recog_scores.pop(0)
+                        if word_inspection(Julius.OrderSet.On, recog_words, recog_scores, th=0.6):
+                            print("On")
+                            GPIO.output(Power.CPS, GPIO.HIGH)
+                        elif word_inspection(Julius.OrderSet.Off, recog_words, recog_scores, th=0.6):
+                            print("Off")
+                            GPIO.output(Power.CPS, GPIO.LOW)
                     
                     # TODO:ここに左右判定
-                    # 腕、上腕 (TYPE : A)
-                    elif word_inspection(command, Julius.OrderSet.UpperArm, score):
+                    # 上腕, 肩 (TYPE : A)
+                    elif word_inspection(Julius.OrderSet.UpperArm, recog_words, recog_scores):
+                        print("上腕, 肩")
+                        recog_words.pop(0)
+                        recog_scores.pop(0)
                         # 屈曲
-                        if word_inspection(command, Julius.OrderSet.Rise, score):
+                        if word_inspection(Julius.OrderSet.Rise, recog_words, recog_scores):
+                            print("屈曲")
                             valve_pressurization(Valve.Left.A)
                         # 伸展
-                        elif word_inspection(command, Julius.OrderSet.Fall, score):
+                        elif word_inspection(Julius.OrderSet.Fall, recog_words, recog_scores):
+                            print("伸展")
                             valve_decompression(Valve.Left.A)
                         # 停止
-                        elif word_inspection(command, Julius.OrderSet.Stop, score):
+                        elif word_inspection(Julius.OrderSet.Stop, recog_words, recog_scores):
+                            print("停止")
                             valve_keep(Valve.Left.A)
 
-                    # 肘 (TYPE : B, C)
-                    elif word_inspection(command, Julius.OrderSet.LowerArm, score):
+                    # 腕, 肘 (TYPE : B, C)
+                    elif word_inspection(Julius.OrderSet.LowerArm, recog_words, recog_scores):
+                        print("肘")
+                        recog_words.pop(0)
+                        recog_scores.pop(0)
                         # 屈曲
-                        if word_inspection(command, Julius.OrderSet.Rise, score):
+                        if word_inspection(Julius.OrderSet.Rise, recog_words, recog_scores):
+                            print("屈曲")
                             valve_pressurization(Valve.Left.B)
                             valve_decompression(Valve.Left.C)
                         # 伸展
-                        elif word_inspection(command, Julius.OrderSet.Fall, score):
+                        elif word_inspection(Julius.OrderSet.Fall, recog_words, recog_scores):
+                            print("伸展")
                             valve_decompression(Valve.Left.B)
                             valve_pressurization(Valve.Left.C)
                         # 停止
-                        elif word_inspection(command, Julius.OrderSet.Stop, score):
+                        elif word_inspection(Julius.OrderSet.Stop, recog_words, recog_scores):
+                            print("停止")
                             valve_keep(Valve.Left.B)
                             valve_keep(Valve.Left.C)
-
-                    # コンプレッサー
-                    elif word_inspection(command, Julius.OrderSet.CPS, score):
-                        if word_inspection(command, Julius.OrderSet.On, score):
-                            GPIO.output(Power.CPS, GPIO.HIGH)
-                        elif word_inspection(command, Julius.OrderSet.Off, score):
-                            GPIO.output(Power.CPS, GPIO.LOW)
 
                 julius_xml_data = ''
             else:
                 julius_xml_data = julius_xml_data + julius_client.recv(1024).decode('utf-8')
-                print(julius_xml_data)
 
     except KeyboardInterrupt:
         julius_client.send("DIE".encode("utf-8"))

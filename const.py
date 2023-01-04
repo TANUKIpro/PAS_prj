@@ -75,7 +75,7 @@ class Julius:
             ]
 
     class Param:
-        word_threshold = 0.95
+        word_threshold = 0.90
 
     class OrderSet:
         # System
@@ -88,10 +88,13 @@ class Julius:
         Rise     = ['挙げ']
         Fall     = ['下げ']
         Stop     = ['停止']
-        Start    = ['開始']
         
         # 緊急時
-        Eme_Stop = ["全停止", "緊急停止"]
+        Eme_Stop = ["緊急", "全", "停止"]
+
+        # ヘッダー/フッター
+        head = "[s]"
+        foot = "[/s]"
 
 class Arduino:
     pass

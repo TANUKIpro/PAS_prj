@@ -1,7 +1,7 @@
 ## MEMO
 #julius -C ~/dictation-kit/am-gmm.jconf -input mic -gram ~/PAS_prj/original_3/command -nostrip -module
 #julius -C /home/pi/grammar-kit-v4.1/hmm_mono.jconf -input mic -gram /home/pi/original_2/command -module
-julius -C grammar-kit-v4.1/hmm_mono.jconf -input mic -gram PAS_prj/cmd/emergency/cmd_eme,PAS_prj/cmd/body/cmd_body,PAS_prj/cmd/dev/cmd_dev
+julius -C grammar-kit-v4.1/hmm_mono.jconf -input mic -gram /home/pi/PAS_prj/cmd/emergency/cmd_eme,/home/pi/PAS_prj/cmd/body/cmd_body,/home/pi/PAS_prj/cmd/dev/cmd_dev -module
 
 python /home/pi/koike_ws/order_actuation.py
 
